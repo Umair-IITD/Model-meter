@@ -99,6 +99,13 @@ export function getPlanPricing(toolId: string, planId: string): PlanPricing | un
 export function getExpectedMonthlySpend(toolId: string, planId: string, seats: number): number {
   const plan = getPlanPricing(toolId, planId);
   if (!plan || plan.type === 'api-token') return 0;
-  if (plan.type === 'per-seat') return plan.monthly * seats;
-  return plan.monthly;
+  // Both per-seat and individual plans multiply by seats:
+  // individual = each team member pays their own subscription
+  return plan.monthly * seats;
+}
+
+export function isApiTokenTool(toolId: string): boolean {
+  const toolPricing = PRICING[toolId];
+  if (!toolPricing) return false;
+  return Object.values(toolPricing).every((p) => p.type === 'api-token');
 }

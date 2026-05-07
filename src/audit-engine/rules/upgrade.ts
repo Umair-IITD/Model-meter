@@ -15,7 +15,8 @@ const upgradeRules: UpgradeRule[] = [
     applies: (tool) =>
       tool.toolId === 'cursor' &&
       tool.planId === 'pro' &&
-      tool.monthlySpend > 60, // Only worth it if spend already exceeds Pro+ price
+      tool.seats === 1 && // upgrade is an individual-plan decision, not a team one
+      tool.monthlySpend > 60, // Only worth it if actual spend (with overages) exceeds Pro+ price
     generate: (tool) => {
       const savings = tool.monthlySpend - 60;
       return {

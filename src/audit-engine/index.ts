@@ -51,15 +51,18 @@ function evaluateTool(tool: ToolInput, input: AuditInput): ToolFinding {
     currentMonthlySpend: tool.monthlySpend,
   };
 
-  // Special case: $0 spend on a paid plan — flag as inconsistent, no savings claimed
+  // Special case: $0 spend — API tools need manual spend entry; other paid plans signal data issue
+  const API_TOOL_IDS = ['anthropic-api', 'openai-api', 'gemini-api'];
   if (tool.monthlySpend === 0 && !['free', 'hobby'].includes(tool.planId)) {
+    const reason = API_TOOL_IDS.includes(tool.toolId)
+      ? 'Enter your actual monthly API spend to receive tailored recommendations for this tool.'
+      : 'Spend is $0 for a paid plan — please verify the amount to get accurate recommendations.';
     return {
       ...base,
       recommendedAction: 'optimal',
       projectedMonthlySavings: 0,
       ruleId: 'data-inconsistency',
-      reason:
-        'You reported $0 monthly spend for a paid plan. Please verify your spend to get an accurate recommendation.',
+      reason,
       estimatedSavings: false,
     };
   }
