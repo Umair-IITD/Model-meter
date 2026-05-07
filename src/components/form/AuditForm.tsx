@@ -65,7 +65,7 @@ export function AuditForm() {
   }
 
   return (
-    <div className="space-y-8">
+    <form onSubmit={(e) => { e.preventDefault(); void handleSubmit(); }} className="space-y-8">
       {/* Global inputs */}
       <Card>
         <CardContent className="pt-6">
@@ -125,7 +125,7 @@ export function AuditForm() {
       {/* Submit */}
       <div className="flex flex-col items-center gap-3">
         <Button
-          onClick={handleSubmit}
+          type="submit"
           disabled={isSubmitting || !isValid}
           size="lg"
           className="w-full max-w-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base h-12"
@@ -143,6 +143,6 @@ export function AuditForm() {
           No account needed · Takes about 5 seconds · 100% free
         </p>
       </div>
-    </div>
+    </form>
   );
 }

@@ -36,11 +36,13 @@ export function LeadCaptureForm({ auditId, totalMonthlySavings }: LeadCaptureFor
   const [email, setEmail] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [role, setRole] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit() {
+  async function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!email || !email.includes('@')) {
       setError('Please enter a valid email address.');
       return;
@@ -58,7 +60,7 @@ export function LeadCaptureForm({ auditId, totalMonthlySavings }: LeadCaptureFor
           email,
           companyName: companyName || undefined,
           role: role || undefined,
-          honeypot: '', // honeypot field value — always empty
+          honeypot,
         }),
       });
 
@@ -94,7 +96,7 @@ export function LeadCaptureForm({ auditId, totalMonthlySavings }: LeadCaptureFor
         <h3 className="font-semibold text-slate-900">{heading}</h3>
       </div>
 
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="lead-email">
             Email <span className="text-red-500">*</span>
@@ -142,13 +144,15 @@ export function LeadCaptureForm({ auditId, totalMonthlySavings }: LeadCaptureFor
           tabIndex={-1}
           autoComplete="off"
           aria-hidden="true"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
           className="absolute opacity-0 w-0 h-0 pointer-events-none"
         />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <Button
-          onClick={handleSubmit}
+          type="submit"
           disabled={isSubmitting}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
         >
@@ -165,7 +169,7 @@ export function LeadCaptureForm({ auditId, totalMonthlySavings }: LeadCaptureFor
         <p className="text-xs text-muted-foreground text-center">
           No spam. Credex may reach out for high-savings cases only. Unsubscribe any time.
         </p>
-      </div>
+      </form>
     </div>
   );
 }
