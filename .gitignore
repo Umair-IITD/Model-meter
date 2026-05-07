@@ -42,3 +42,14 @@ next-env.d.ts
 .claude-flow/
 .mcp.json
 skills-lock.json
+
+# firebase credentials — NEVER commit service account keys
+*-firebase-adminsdk-*.json
+*service-account*.json
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# local environment (contains secrets)
+.env.local
+.env.*.local

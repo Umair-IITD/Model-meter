@@ -107,7 +107,7 @@ export async function GET(
           }}
         >
           <div>Free AI spend audit — no login required</div>
-          <div>model-meter.vercel.app</div>
+          <div>{(process.env.NEXT_PUBLIC_APP_URL ?? 'https://model-meter.vercel.app').replace(/^https?:\/\//, '')}</div>
         </div>
       </div>
     ),

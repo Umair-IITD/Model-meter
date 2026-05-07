@@ -1,20 +1,20 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Groq from 'groq-sdk';
 import type { AuditResult } from '@/lib/schemas';
 
-// Uses claude-haiku-4-5-20251001 — sufficient for 100-word summaries, 5x cheaper than Sonnet
-const SUMMARY_MODEL = 'claude-haiku-4-5-20251001';
+// llama-3.1-8b-instant: fast, free-tier available, good for short summaries
+const SUMMARY_MODEL = 'llama-3.1-8b-instant';
 const SUMMARY_MAX_TOKENS = 200;
 const SUMMARY_TIMEOUT_MS = 8000;
 
-let anthropicClient: Anthropic | null = null;
+let groqClient: Groq | null = null;
 
-function getAnthropicClient(): Anthropic {
-  if (!anthropicClient) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
-    anthropicClient = new Anthropic({ apiKey });
+function getGroqClient(): Groq {
+  if (!groqClient) {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) throw new Error('GROQ_API_KEY not set');
+    groqClient = new Groq({ apiKey });
   }
-  return anthropicClient;
+  return groqClient;
 }
 
 function buildPrompt(result: AuditResult, teamSize: number, useCase: string): string {
@@ -74,22 +74,21 @@ export async function generateAuditSummary(
   useCase: string
 ): Promise<{ summary: string; summaryIsAI: boolean }> {
   try {
-    const client = getAnthropicClient();
+    const client = getGroqClient();
     const prompt = buildPrompt(result, teamSize, useCase);
 
-    const apiPromise = client.messages.create({
+    const apiPromise = client.chat.completions.create({
       model: SUMMARY_MODEL,
       max_tokens: SUMMARY_MAX_TOKENS,
       messages: [{ role: 'user', content: prompt }],
     });
 
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Anthropic API timeout')), SUMMARY_TIMEOUT_MS)
+      setTimeout(() => reject(new Error('Groq API timeout')), SUMMARY_TIMEOUT_MS)
     );
 
-    const message = await Promise.race([apiPromise, timeoutPromise]);
-    const firstBlock = message.content[0];
-    const text = firstBlock.type === 'text' ? firstBlock.text.trim() : '';
+    const completion = await Promise.race([apiPromise, timeoutPromise]);
+    const text = completion.choices[0]?.message?.content?.trim() ?? '';
 
     if (!text) {
       return { summary: generateTemplateSummary(result), summaryIsAI: false };
@@ -97,7 +96,7 @@ export async function generateAuditSummary(
 
     return { summary: text, summaryIsAI: true };
   } catch (error) {
-    console.error('[ai-summary] Anthropic API error — using template fallback:', error);
+    console.error('[ai-summary] Groq API error — using template fallback:', error);
     return { summary: generateTemplateSummary(result), summaryIsAI: false };
   }
 }

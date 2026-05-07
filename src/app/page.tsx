@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 const SOCIAL_PROOF = [
   { company: 'Series A SaaS', result: 'Identified $2,400/month in redundant AI subscriptions' },
   { company: 'Pre-seed startup', result: 'Consolidated 3 AI tools to 1, saving $480/month' },
-  { company: '15-person eng team', result: 'Switched from flaghship API to Flash-Lite, saving $1,200/month' },
+  { company: '15-person eng team', result: 'Switched from flagship API to Flash-Lite, saving $1,200/month' },
 ] as const;
 
 const FEATURES = [
@@ -78,7 +78,7 @@ export default function LandingPage() {
           <Link href="/audit/new">
             <Button
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base h-13 px-8 rounded-xl gap-2"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base h-12 px-8 rounded-xl gap-2"
             >
               Audit My AI Spend
               <ArrowRight className="h-5 w-5" />

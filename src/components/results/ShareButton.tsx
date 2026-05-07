@@ -12,8 +12,7 @@ export function ShareButton({ auditId }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleShare() {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
-    const url = `${appUrl}/audit/${auditId}`;
+    const url = `${window.location.origin}/audit/${auditId}`;
 
     try {
       await navigator.clipboard.writeText(url);
