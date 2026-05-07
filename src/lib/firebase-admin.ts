@@ -15,9 +15,17 @@ function getFirestoreAdmin(): Firestore {
       );
     }
 
-    const serviceAccount = JSON.parse(
-      Buffer.from(serviceAccountJson, 'base64').toString('utf-8')
-    ) as admin.ServiceAccount;
+    let serviceAccount: admin.ServiceAccount;
+    try {
+      serviceAccount = JSON.parse(
+        Buffer.from(serviceAccountJson, 'base64').toString('utf-8')
+      ) as admin.ServiceAccount;
+    } catch {
+      throw new Error(
+        'FIREBASE_SERVICE_ACCOUNT is not valid base64-encoded JSON. ' +
+          'Run: base64 -w0 your-service-account.json'
+      );
+    }
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),

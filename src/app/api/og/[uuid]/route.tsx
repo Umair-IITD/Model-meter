@@ -14,6 +14,7 @@ export async function GET(
   let totalAnnualSavings = 0;
   let toolCount = 0;
   let isOptimal = false;
+  let found = false;
 
   try {
     const db = getFirestoreAdmin();
@@ -25,16 +26,21 @@ export async function GET(
       totalAnnualSavings = data.totalAnnualSavings as number;
       toolCount = (data.tools as unknown[])?.length ?? 0;
       isOptimal = data.isOptimal as boolean;
+      found = true;
     }
   } catch {
-    // Render a generic OG image even if Firestore is unavailable
+    // Render a generic OG image if Firestore is unavailable
   }
 
-  const savingsText = isOptimal
+  const savingsText = !found
+    ? 'Audit Your AI Spend'
+    : isOptimal
     ? 'Already Optimized'
     : `$${Math.round(totalAnnualSavings).toLocaleString()}/year in savings`;
 
-  const subText = isOptimal
+  const subText = !found
+    ? 'Free · No login required · Results in 60 seconds'
+    : isOptimal
     ? 'Your AI stack is spending well'
     : `$${Math.round(totalMonthlySavings).toLocaleString()}/month across ${toolCount} tool${toolCount !== 1 ? 's' : ''}`;
 
