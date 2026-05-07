@@ -55,24 +55,39 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Fetch audit to get savings amount for denormalization
+  // Fetch audit once — used for savings denormalization + email recommendations
+  const db = getFirestoreAdmin();
   let totalMonthlySavings = 0;
+  let topRecommendations: string[] = [];
+
   try {
-    const db = getFirestoreAdmin();
     const auditDoc = await db.collection('audits').doc(data.auditId).get();
     if (auditDoc.exists) {
-      totalMonthlySavings = (auditDoc.data()?.totalMonthlySavings as number) ?? 0;
+      const auditData = auditDoc.data()!;
+      totalMonthlySavings = (auditData.totalMonthlySavings as number) ?? 0;
+
+      if (auditData.findings) {
+        const findings = auditData.findings as Array<{
+          toolName: string;
+          reason: string;
+          projectedMonthlySavings: number;
+        }>;
+        topRecommendations = findings
+          .filter((f) => f.projectedMonthlySavings > 0)
+          .sort((a, b) => b.projectedMonthlySavings - a.projectedMonthlySavings)
+          .slice(0, 2)
+          .map((f) => `${f.toolName}: ${f.reason}`);
+      }
     }
   } catch (error) {
-    console.error('[api/leads] Could not fetch audit for savings denormalization:', error);
-    // Non-fatal — continue storing the lead
+    console.error('[api/leads] Could not fetch audit:', error);
+    // Non-fatal — continue with zero savings
   }
 
   const highSavings = totalMonthlySavings > 500;
 
   // Persist lead to Firestore (private collection — no public access)
   try {
-    const db = getFirestoreAdmin();
     await db.collection('leads').add({
       auditId: data.auditId,
       email: data.email,
@@ -93,24 +108,6 @@ export async function POST(request: NextRequest) {
 
   // Send transactional email — failure is non-fatal (lead is already stored)
   try {
-    const db = getFirestoreAdmin();
-    const auditDoc = await db.collection('audits').doc(data.auditId).get();
-    const auditData = auditDoc.data();
-
-    const topRecommendations: string[] = [];
-    if (auditData?.findings) {
-      const findings = auditData.findings as Array<{
-        toolName: string;
-        reason: string;
-        projectedMonthlySavings: number;
-      }>;
-      findings
-        .filter((f) => f.projectedMonthlySavings > 0)
-        .sort((a, b) => b.projectedMonthlySavings - a.projectedMonthlySavings)
-        .slice(0, 2)
-        .forEach((f) => topRecommendations.push(`${f.toolName}: ${f.reason}`));
-    }
-
     await sendAuditEmail({
       to: data.email,
       auditId: data.auditId,
