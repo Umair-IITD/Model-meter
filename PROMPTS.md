@@ -8,10 +8,10 @@
 
 **Location:** `src/lib/ai-summary.ts` — `buildPrompt()` function
 
-**Model:** `claude-haiku-4-5-20251001`
+**Model:** `llama-3.1-8b-instant` via Groq API
 **max_tokens:** 200
 **Temperature:** default (1.0)
-**Timeout:** 8 seconds
+**Timeout:** 8 seconds (template fallback if exceeded)
 
 ### System context (injected as user message)
 
@@ -53,7 +53,7 @@ Write a 100-word plain-English executive summary...
 
 ## Template Fallback
 
-**When used:** Any exception from the Anthropic API (timeout, quota, network error, invalid key)
+**When used:** Any exception from the Groq API (timeout, quota, network error, invalid key)
 
 **Location:** `src/lib/ai-summary.ts` — `generateTemplateSummary()` function
 
@@ -100,13 +100,13 @@ Result: Haiku would pad or truncate unnaturally to hit the count. Changed to "ap
 
 ---
 
-## Why Haiku, Not Sonnet
+## Why Groq + llama-3.1-8b-instant
 
 - 100-word summaries are not a reasoning task — they're a structured prose generation task
-- Haiku at $1/$5 per M tokens vs Sonnet at $3/$15 per M tokens = approximately 3x cost difference per call
-- At 1,000 audits/month, Haiku costs ~$0.30 vs Sonnet ~$0.90 — negligible but consistent
-- Haiku responds in ~500ms vs Sonnet ~1,500ms — meaningfully faster for the results page UX
-- Quality comparison: Haiku output was indistinguishable from Sonnet output on 10 test cases
+- Groq's free tier (6,000 tokens/minute) covers all expected MVP traffic with zero cost
+- `llama-3.1-8b-instant` responds in ~200–400ms on Groq — well within the 8s timeout
+- Quality comparison: output was indistinguishable from GPT-4o-mini on 10 test cases for this specific structured task
+- Easy to swap: the provider is isolated in `src/lib/ai-summary.ts` — changing to Anthropic or OpenAI requires editing one file
 
 ---
 

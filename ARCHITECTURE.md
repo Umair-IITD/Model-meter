@@ -12,8 +12,8 @@ graph LR
 
   subgraph "Next.js App Router (Vercel)"
     C["Route: /api/audit"] -->|"Run audit engine pure TS"| D["Audit Result"]
-    C -->|"Store audit strip PII"| E["Firestore: audits"]
-    C -->|"Call Anthropic API"| F["AI Summary"]
+    C -->|"Store audit — no PII"| E["Firestore: audits"]
+    C -->|"Call Groq API"| F["AI Summary"]
     F -->|"Fallback if fail"| G["Template Summary"]
     D --> H["Results Page /audit/uuid"]
     H -->|"Collect email"| I["/api/leads"]
@@ -35,7 +35,7 @@ graph LR
 1. User fills `/audit/new` form (localStorage persisted, no server involved)
 2. User submits → `POST /api/audit` with `{ teamSize, useCase, tools[] }`
 3. Server validates with Zod, runs `runAudit()` (pure TypeScript, no AI)
-4. Server calls Anthropic API for 100-word summary (8s timeout, template fallback)
+4. Server calls Groq API (`llama-3.1-8b-instant`) for 100-word summary (8s timeout, template fallback)
 5. Server generates UUID, writes to Firestore `audits` collection (PII-free)
 6. Client redirects to `/audit/{uuid}`
 7. Results page is a Server Component that reads Firestore by UUID
@@ -49,7 +49,7 @@ graph LR
 | Language | TypeScript strict | Audit engine type safety — silent calculation bugs are disqualifying |
 | Styling | Tailwind + shadcn UI | Radix UI accessibility primitives, zero runtime CSS overhead |
 | Database | Firebase Firestore | No credit card for Spark plan, Admin SDK bypasses security rules for clean server-only writes |
-| AI | Anthropic claude-haiku-4-5 | 100-word summaries don't need Sonnet reasoning; 5x cheaper, faster |
+| AI | Groq llama-3.1-8b-instant | 100-word summaries don't need GPT-4 reasoning; sub-second inference, free tier |
 | Email | Resend | Cleanest Next.js integration, 3K free emails/month |
 | OG Images | next/og (ImageResponse) | Built into Next.js, zero extra infrastructure |
 | Form state | localStorage | Multi-tool form is too complex for URL params |
